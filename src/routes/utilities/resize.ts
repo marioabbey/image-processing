@@ -1,24 +1,16 @@
 import sharp from 'sharp';
-import path from 'path';
 
 async function resize(
-  full: string | sharp.SharpOptions | undefined,
+  filePath: string,
   width: number,
-  height: number
-) {
-  await sharp(
-    path.join(__dirname, '../../assets/full', `${full}.jpg`)
-  )
+  height: number,
+  thumbPath: string
+): Promise<void> {
+  await sharp(filePath)
     .resize(width, height, {
-      fit:'contain'
+      fit: 'contain',
     })
-    .toFile(
-      path.join(
-        __dirname,
-        '../../assets/thumb',
-        `${full}-${width}x${height}.jpg`
-      )
-    );
+    .toFile(thumbPath);
 }
 
 export default resize;

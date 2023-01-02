@@ -20,13 +20,13 @@ describe('Test invalid scenarios passed in the url', () => {
       '/api/images?filename=palmtunnel&width=&height='
     );
 
-    expect(response.status).toBe(404);
+    expect(response.status).toBe(400);
   });
 });
 
 //got idea on how to go about the test here https://github.com/tariq-k-dev/image-processing-api/blob/main/src/tests/indexSpec.ts
 describe('Test for all scenarios passed in the url', () => {
-  beforeEach(() => {
+  beforeAll(() => {
     try {
       fs.mkdirSync(path.resolve('build', 'assets', 'thumb'), {
         recursive: true,
@@ -51,20 +51,29 @@ describe('Test for all scenarios passed in the url', () => {
     }
   });
 
-  // afterAll(() => {
-  //   fs.rmSync('build/assets', { recursive: true });
-  // });
+  afterAll(() => {
+    fs.rmSync('build/assets', { recursive: true });
+  });
 
-  it('returns 200 when valid details  are  passed', async () => {
-    await request.get('/api/images?filename=palmtunnel&width=20&height=10');
-    const testPath = path.join(
+  it('Resize should be successful if right parameters are passed', async () => {
+    const testImage = path.resolve('build', 'assets', 'full', 'palmtunnel.jpg');
+    const resizeImage = path.resolve(
       'build',
       'assets',
       'thumb',
-      'palmtunnel-20x$10.jpg'
+      'palmtunnel-20x10.jpg'
     );
-
-    resize('palmtunnel', 20, 10);
-    expect(fs.existsSync(testPath)).toBeTruthy;
+    resize(testImage, 20, 10, resizeImage);
+    expect(fs.existsSync(resizeImage)).toBeTruthy;
+  });
+  
+  it('gets the api/images endpoint', async () => {
+    try {
+      const response = await request.get('/api/images');
+      console.log('response');
+      expect(response.status).toBe(400);
+    } catch (err) {
+      console.error('Could not reach Endpoint', err);
+    }
   });
 });
