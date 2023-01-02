@@ -6,8 +6,12 @@ async function resize(
   width: number,
   height: number
 ) {
-  await sharp(path.join(__dirname, '../../assets/full', `${full}.jpg`))
-    .resize(width, height)
+  await sharp(
+    path.join(__dirname, '../../assets/full', `${full}.jpg`)
+  )
+    .resize(width, height, {
+      fit:'contain'
+    })
     .toFile(
       path.join(
         __dirname,

@@ -16,9 +16,9 @@ const sharp_1 = __importDefault(require("sharp"));
 const path_1 = __importDefault(require("path"));
 function resize(full, width, height) {
     return __awaiter(this, void 0, void 0, function* () {
-        const resizeImage = yield (0, sharp_1.default)(path_1.default.join(__dirname, "../../assets/full", `${full}.jpg`))
+        yield (0, sharp_1.default)(path_1.default.join(__dirname, '../../assets/full', `${full}.jpg`))
             .resize(width, height)
-            .toFile(path_1.default.join(__dirname, "../../assets/thumb", `${full}-${width}x${height}.jpg`));
+            .toFile(path_1.default.join(__dirname, '../../assets/thumb', `${full}-${width}x${height}.jpg`));
     });
 }
 exports.default = resize;

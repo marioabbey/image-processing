@@ -23,6 +23,7 @@ describe('Test that image endpoint is valid', () => {
             expect(response.status).toBe(200);
         }
         catch (err) {
+            console.error('Could not reach Endpoint', err);
         }
     }));
 });

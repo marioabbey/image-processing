@@ -1,25 +1,23 @@
-import supertest from "supertest";
-import app from "../../..";
-import fs from "fs";
-import path from "path";
-import resize from "../../../routes/utilities/resize";
+import supertest from 'supertest';
+import app from '../../..';
+import fs from 'fs';
+import path from 'path';
+import resize from '../../../routes/utilities/resize';
 
 const request = supertest(app);
 
-describe("Test invalid scenarios passed in the url", () => {
-  it("returns 404 when invalid filename is passed", async () => {
-    const response = await request.get("/api/images?filename=abiodun");
-
+describe('Test invalid scenarios passed in the url', () => {
+  it('returns 404 when invalid filename is passed', async () => {
+    const response = await request.get('/api/images?filename=abiodun');
     expect(response.status).toBe(404);
   });
-  it("returns 404 when NO filename is passed", async () => {
-    const response = await request.get("/api/images?filename=");
-
+  it('returns 404 when NO filename is passed', async () => {
+    const response = await request.get('/api/images?filename=');
     expect(response.status).toBe(404);
   });
-  it("returns 404 when no height and width is passed", async () => {
+  it('returns 404 when no height and width is passed', async () => {
     const response = await request.get(
-      "/api/images?filename=palmtunnel&width=&height="
+      '/api/images?filename=palmtunnel&width=&height='
     );
 
     expect(response.status).toBe(404);
@@ -27,46 +25,46 @@ describe("Test invalid scenarios passed in the url", () => {
 });
 
 //got idea on how to go about the test here https://github.com/tariq-k-dev/image-processing-api/blob/main/src/tests/indexSpec.ts
-describe("Test for all scenarios passed in the url", () => {
+describe('Test for all scenarios passed in the url', () => {
   beforeEach(() => {
     try {
-      fs.mkdirSync(path.resolve("build", "assets", "thumb"), {
+      fs.mkdirSync(path.resolve('build', 'assets', 'thumb'), {
         recursive: true,
       });
-    } catch (err) {}
+    } catch (err) {
+      console.error('could not create directory', err);
+    }
     try {
-      fs.mkdirSync(path.resolve("build", "assets", "full"), {
+      fs.mkdirSync(path.resolve('build', 'assets', 'full'), {
         recursive: true,
       });
-    } catch (err) {}
-    const TestImage = path.resolve("src", "assets", "full", "palmtunnel.jpg");
-    const ImgOutput = path.resolve("build", "assets", "full", "palmtunnel.jpg");
+    } catch (err) {
+      console.error('could not create directory', err);
+    }
+    const TestImage = path.resolve('src', 'assets', 'full', 'palmtunnel.jpg');
+    const ImgOutput = path.resolve('build', 'assets', 'full', 'palmtunnel.jpg');
 
     try {
       fs.copyFileSync(TestImage, ImgOutput);
-    } catch (err) {}
+    } catch (err) {
+      console.error('System could not copy file', err);
+    }
   });
 
-  afterAll(() => {
-    fs.rmSync("build/assets", { recursive: true });
-  });
+  // afterAll(() => {
+  //   fs.rmSync('build/assets', { recursive: true });
+  // });
 
-  it("returns 200 when valid details  are  passed", async () => {
-    const response = await request.get(
-      "/api/images?filename=palmtunnel&width=20&height=10"
-    );
+  it('returns 200 when valid details  are  passed', async () => {
+    await request.get('/api/images?filename=palmtunnel&width=20&height=10');
     const testPath = path.join(
-      "build",
-      "assets",
-      "thumb",
-      `palmtunnel-20x$10.jpg`
+      'build',
+      'assets',
+      'thumb',
+      'palmtunnel-20x$10.jpg'
     );
 
-    resize("palmtunnel", 20, 10);
+    resize('palmtunnel', 20, 10);
     expect(fs.existsSync(testPath)).toBeTruthy;
   });
-
-
-
- 
 });

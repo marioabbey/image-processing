@@ -22,6 +22,7 @@ describe('Test that endpoint responds', () => {
             expect(response.status).toBe(200);
         }
         catch (err) {
+            console.error('Endpoint could not be reached', err);
         }
     }));
 });

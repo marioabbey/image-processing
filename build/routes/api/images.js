@@ -7,31 +7,31 @@ const express_1 = __importDefault(require("express"));
 const fs_1 = __importDefault(require("fs"));
 const path_1 = __importDefault(require("path"));
 const resize_1 = __importDefault(require("../utilities/resize"));
-var cacheService = require("express-api-cache");
-const cache = cacheService.cache;
+const node_cache_1 = __importDefault(require("node-cache"));
+const cache = new node_cache_1.default();
 //define a router for the default homepage
 const images = express_1.default.Router();
 //Get all parameters
-images.get("/", cache("10 minutes"), (req, res) => {
+images.get('/', (req, res) => {
     const filename = req.query.filename;
     const heightParam = req.query.height;
     const widthParam = req.query.width;
     // Response when filename is not supplied
-    if (typeof filename == "undefined" || typeof filename != "string") {
-        res.send("Supply a filename");
+    if (typeof filename == 'undefined' || typeof filename != 'string') {
+        res.send('Supply a filename');
         return;
     }
     //Checks that width and height are not undefined
     let height = NaN;
-    if (typeof heightParam != "undefined" && typeof heightParam == "string") {
+    if (typeof heightParam != 'undefined' && typeof heightParam == 'string') {
         height = parseInt(heightParam);
     }
     let width = NaN;
-    if (typeof widthParam != "undefined" && typeof widthParam == "string") {
+    if (typeof widthParam != 'undefined' && typeof widthParam == 'string') {
         width = parseInt(widthParam);
     }
     // Create a filepath based on the filename passed
-    const filePath = path_1.default.join(__dirname, "../../assets/full", `${filename}.jpg`);
+    const filePath = path_1.default.join(__dirname, '../../assets/full', `${filename}.jpg`);
     // Check if the file exists in the system
     return fs_1.default.promises
         .access(filePath)
@@ -42,14 +42,26 @@ images.get("/", cache("10 minutes"), (req, res) => {
             res.sendFile(filePath);
             return;
         }
-        const thumbPath = path_1.default.join(__dirname, "../../assets/thumb", `${filename}-${width}x${height}.jpg`);
-        (0, resize_1.default)(filename, width, height)
-            .then(() => {
-            res.sendFile(thumbPath);
-        })
-            .catch((err) => {
-            res.status(404).end();
-        });
+        //Cache Implemented here
+        const key = req.originalUrl;
+        const Response = cache.get(key);
+        if (Response) {
+            console.log('I am picking from cache');
+            res.sendFile(Response);
+        }
+        else {
+            const thumbPath = path_1.default.join(__dirname, '../../assets/thumb', `${filename}-${width}x${height}.jpg`);
+            (0, resize_1.default)(filename, width, height)
+                .then(() => {
+                cache.set(key, thumbPath);
+                console.log('I am picking outside the cache');
+                res.sendFile(thumbPath);
+            })
+                .catch((err) => {
+                console.error(err);
+                res.status(404).end();
+            });
+        }
     })
         .catch((err) => {
         console.error(err);
