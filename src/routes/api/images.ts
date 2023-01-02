@@ -1,4 +1,5 @@
 import express from "express";
+import fs from "fs";
 import path from "path";
 import resize from "../utilities/resize";
 var cacheService = require("express-api-cache");
@@ -6,7 +7,6 @@ const cache = cacheService.cache;
 
 //define a router for the default homepage
 const images = express.Router();
-
 
 //Get all parameters
 images.get("/", cache("10 minutes"), (req, res) => {
@@ -31,22 +31,38 @@ images.get("/", cache("10 minutes"), (req, res) => {
     width = parseInt(widthParam);
   }
 
+// Create a filepath based on the filename passed
+  const filePath = path.join(__dirname, "../../assets/full", `${filename}.jpg`);
 
-  //create the filepath for the converted image
-  const thumbPath = path.join(
-    __dirname,
-    "../../assets/thumb",
-    `${filename}-${width}x${height}.jpg`
-  );
+// Check if the file exists in the system
+  return fs.promises
+    .access(filePath)
+    .then(() => {
+      // send existing if height and width are not passed or invalid
+      if (!(height && width)) {
+        console.log('I am here')
+        res.sendFile(filePath);
+        return;
+      }
+      const thumbPath = path.join(
+        __dirname,
+        "../../assets/thumb",
+        `${filename}-${width}x${height}.jpg`
+      );
 
+      resize(filename, width, height)
+        .then(() => {
+          res.sendFile(thumbPath);
+        })
+        .catch((err) => {
+          res.status(404).end();
+        });
+    })
 
-  resize(filename, width, height).then(() => {
-    res.sendFile(thumbPath);
-  })
-  .catch((err) => {
-    res.status(400).json({ error: err.message })
-  });
-  
+    .catch((err) => {
+      console.error(err);
+      res.status(404).end();
+    });
 });
 
-export default images ;
+export default images;

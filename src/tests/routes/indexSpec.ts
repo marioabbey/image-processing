@@ -1,8 +1,7 @@
 import supertest from "supertest"; 
+import app from "../..";
 
-import routes from "../../routes";
-
-const request = supertest(routes);
+const request = supertest(app);
 
 
 
