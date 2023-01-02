@@ -1,10 +1,7 @@
 import express from 'express';
-import fs from 'fs';
 import path from 'path';
 import resize from '../utilities/resize';
-import NodeCache from 'node-cache';
-
-const cache = new NodeCache();
+import fileExist from '../utilities/file-exist';
 
 //define a router for the default homepage
 const images = express.Router();
@@ -17,7 +14,7 @@ images.get('/', (req, res) => {
 
   // Response when filename is not supplied
   if (typeof filename == 'undefined' || typeof filename != 'string') {
-    res.send('Supply a filename');
+    res.status(400).json({ message: 'Filename was not supplied ' });
     return;
   }
 
@@ -26,55 +23,54 @@ images.get('/', (req, res) => {
   if (typeof heightParam != 'undefined' && typeof heightParam == 'string') {
     height = parseInt(heightParam);
   }
+  if (typeof heightParam != 'undefined' && (isNaN(height) || height < 1)) {
+    res.status(400).json({ message: 'Invalid Height was passed' });
+    return;
+  }
 
   let width = NaN;
   if (typeof widthParam != 'undefined' && typeof widthParam == 'string') {
     width = parseInt(widthParam);
   }
+  if (typeof widthParam != 'undefined' && (isNaN(width) || width < 1)) {
+    res.status(400).json({ message: 'Invalid Width was passed' });
+    return;
+  }
+
+  const thumbPath = path.resolve(
+    'src',
+    'assets',
+    'full',
+    `${filename}-${width}x${height}.jpg`
+  );
+  //checking if the file already exist
+  if (fileExist(thumbPath)) {
+    res.sendFile(thumbPath);
+    return;
+  }
 
   // Create a filepath based on the filename passed
-  const filePath = path.join(__dirname, '../../assets/full', `${filename}.jpg`);
+  //const filePath = path.join(__dirname, '../../assets/full', `${filename}.jpg`);
+  const filePath = path.resolve('src', 'assets', 'full', `${filename}.jpg`);
 
   // Check if the file exists in the system
-  return fs.promises
-    .access(filePath)
+  if (!fileExist(filePath)) {
+    res.status(404).json({ message: 'Filename not found' });
+    return;
+  }
+  // send existing if height and width are not passed or invalid
+  if (!(height && width)) {
+    res.sendFile(filePath);
+    return;
+  }
+
+  return resize(filename, width, height, thumbPath)
     .then(() => {
-      // send existing if height and width are not passed or invalid
-      if (!(height && width)) {
-        console.log('I am here');
-        res.sendFile(filePath);
-        return;
-      }
-
-      //Cache Implemented here
-      const key = req.originalUrl;
-      const Response = cache.get(key);
-      if (Response) {
-        console.log('I am picking from cache');
-        res.sendFile(Response as string);
-      } else {
-        const thumbPath = path.join(
-          __dirname,
-          '../../assets/thumb',
-          `${filename}-${width}x${height}.jpg`
-        );
-
-        resize(filename, width, height)
-          .then(() => {
-            cache.set(key, thumbPath);
-            console.log('I am picking outside the cache');
-            res.sendFile(thumbPath);
-          })
-          .catch((err) => {
-            console.error(err);
-            res.status(404).end();
-          });
-      }
+      res.sendFile(thumbPath);
     })
-
     .catch((err) => {
       console.error(err);
-      res.status(404).end();
+      res.status(500).json({ message: 'An error occurred while processing' });
     });
 });
 
