@@ -18,18 +18,27 @@ images.get('/', (req, res) => {
     return;
   }
 
-  //Checks that width and height are not undefined
+  //Checks that width and height are not undefined and that no alpahbet is passed - New line Added
   let height = NaN;
-  if (typeof heightParam != 'undefined' && typeof heightParam == 'string') {
+  if (
+    typeof heightParam != 'undefined' &&
+    typeof heightParam == 'string' &&
+    /^\d+$/.test(heightParam)
+  ) {
     height = parseInt(heightParam);
   }
+
   if (typeof heightParam != 'undefined' && (isNaN(height) || height < 1)) {
     res.status(400).json({ message: 'Invalid Height was passed' });
     return;
   }
 
   let width = NaN;
-  if (typeof widthParam != 'undefined' && typeof widthParam == 'string') {
+  if (
+    typeof widthParam != 'undefined' &&
+    typeof widthParam == 'string' &&
+    /^\d+$/.test(widthParam)
+  ) {
     width = parseInt(widthParam);
   }
   if (typeof widthParam != 'undefined' && (isNaN(width) || width < 1)) {
