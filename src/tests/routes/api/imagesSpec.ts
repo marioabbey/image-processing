@@ -66,7 +66,7 @@ describe('Test for all scenarios passed in the url', () => {
     resize(testImage, 20, 10, resizeImage);
     expect(fs.existsSync(resizeImage)).toBeTruthy;
   });
-  
+
   it('gets the api/images endpoint', async () => {
     try {
       const response = await request.get('/api/images');
@@ -75,5 +75,12 @@ describe('Test for all scenarios passed in the url', () => {
     } catch (err) {
       console.error('Could not reach Endpoint', err);
     }
+  });
+  it('returns 200 when right endpoint is passed', async () => {
+    const response = await request.get(
+      '/api/images?filename=palmtunnel&width=10&height=20'
+    );
+
+    expect(response.status).toBe(200);
   });
 });

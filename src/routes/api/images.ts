@@ -37,10 +37,9 @@ images.get('/', (req, res) => {
     return;
   }
 
-  const thumbPath = path.resolve(
-    'src',
-    'assets',
-    'full',
+  const thumbPath = path.join(
+    __dirname,
+    '../../assets/thumb',
     `${filename}-${width}x${height}.jpg`
   );
   //checking if the file already exist
@@ -50,8 +49,8 @@ images.get('/', (req, res) => {
   }
 
   // Create a filepath based on the filename passed
-  //const filePath = path.join(__dirname, '../../assets/full', `${filename}.jpg`);
-  const filePath = path.resolve('src', 'assets', 'full', `${filename}.jpg`);
+  const filePath = path.join(__dirname, '../../assets/full', `${filename}.jpg`);
+  //const filePath = path.resolve('src', 'assets', 'full', `${filename}.jpg`);
 
   // Check if the file exists in the system
   if (!fileExist(filePath)) {
@@ -64,7 +63,7 @@ images.get('/', (req, res) => {
     return;
   }
 
-  return resize(filename, width, height, thumbPath)
+  return resize(filePath, width, height, thumbPath)
     .then(() => {
       res.sendFile(thumbPath);
     })
